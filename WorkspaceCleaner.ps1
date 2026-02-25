@@ -281,6 +281,8 @@ if ($trashDirs.Count -gt 0) {
     $deleteTime = (Get-Date) - $deleteStart
     Write-Host "✅ Trash deletion complete! Freed: $(Format-Bytes $totalFreedBytes) ($($deleteTime.TotalSeconds.ToString("0.0"))s)`n"
 }
+        }
+    }
 
 if ($total -eq 0) {
     if ($trashDirs.Count -eq 0) {
