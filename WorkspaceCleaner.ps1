@@ -21,6 +21,15 @@ param(
 # =====================================================
 
 $root = $Path
+
+if ($root -eq $PSScriptRoot) {
+    Write-Host "You are running this script from its own folder." -ForegroundColor Yellow
+    $promptPath = Read-Host "Please enter the path to scan (or press Enter to scan current directory: $($PSScriptRoot))"
+    if (-not [string]::IsNullOrWhiteSpace($promptPath)) {
+        $root = $promptPath
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($root)) {
     $root = (Get-Location).Path
 }
@@ -202,6 +211,7 @@ if ($trashDirs.Count -gt 0) {
 
         $job = Start-ThreadJob -ScriptBlock {
             param($path)
+            $ProgressPreference = 'SilentlyContinue'
             $size = 0
             try {
                 $dirObj = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum
@@ -314,13 +324,14 @@ foreach ($dir in $projects) {
     }
 
     $job = Start-ThreadJob -ScriptBlock {
-        param($p)
-        Push-Location $p
-        flutter clean | Out-Null
-        flutter pub get | Out-Null
-        Pop-Location
-        return $p
-    } -ArgumentList $dir
+            param($p)
+            $ProgressPreference = 'SilentlyContinue'
+            Push-Location $p
+            flutter clean *>$null
+            flutter pub get *>$null
+            Pop-Location
+            return $p
+        } -ArgumentList $dir
     
     # Add metadata for UI tracking
     $job | Add-Member -MemberType NoteProperty -Name "ProjectPath" -Value $dir.Replace($root, "").TrimStart("\")
